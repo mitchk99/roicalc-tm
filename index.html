@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laurel ROI — Time &amp; Materials</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --black:#000; --white:#fff; --zest:#F86A0C; --golden:#FECC4A;
+    --wreath:#C1E3C1; --violet:#C7BEFA; --surface:#F5F4F1;
+    --border:#DDD9D2; --muted:#7A7872; --font:'Inter',sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);background:var(--surface);color:var(--black);font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  header{background:var(--black);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+  header svg{height:26px;width:auto}
+  .cur-btn{font-family:var(--font);font-size:11px;font-weight:700;padding:4px 10px;border-radius:5px;border:1.5px solid rgba(255,255,255,0.25);background:transparent;color:rgba(255,255,255,0.55);cursor:pointer;transition:all .12s}
+  .cur-btn:hover{border-color:rgba(255,255,255,0.7);color:rgba(255,255,255,0.9)}
+  .cur-btn.active{background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.8);color:#fff}
+  .page{max-width:1280px;margin:0 auto;padding:32px 32px 80px}
+  .page-title{text-align:center;margin-bottom:28px}
+  .page-title h1{font-size:22px;font-weight:700;letter-spacing:-.3px}
+  .page-title p{font-size:12px;color:var(--muted);margin-top:4px}
+  .slabel{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .card{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:20px}
+  .card-hd{background:var(--black);color:var(--white);padding:9px 16px;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;text-align:center}
+  .card-hd.grn{background:#1B3A2F}
+  .pgrid{display:grid;gap:8px;padding:10px 14px;align-items:stretch}
+  .pgrid.c2{grid-template-columns:repeat(2,1fr)}
+  .pgrid.c3{grid-template-columns:repeat(3,1fr)}
+  .pgrid.c4{grid-template-columns:repeat(4,1fr)}
+  .pgrid.c5{grid-template-columns:repeat(5,1fr)}
+  .pgrid.c6{grid-template-columns:repeat(6,1fr)}
+  .pgrid.c7{grid-template-columns:repeat(7,1fr)}
+  .pgrid.c8{grid-template-columns:repeat(8,1fr)}
+  .pdiv{height:1px;background:var(--border);margin:0 16px}
+  .pcell{border-radius:7px;padding:8px 10px 6px;text-align:center;display:flex;flex-direction:column;align-items:center}
+  .pcell.var{background:#FEFCE8;border:1px solid #E0C840}
+  .pcell.calc{background:#EEECE7;border:1px solid var(--border)}
+  .pcell.out{background:#E8F5E9;border:1px solid #81C784}
+  .plabel{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;line-height:1.3;flex-shrink:0;height:26px;display:flex;align-items:center;justify-content:center;width:100%;text-align:center}
+  .pval-wrap{height:34px;flex-shrink:0;display:flex;align-items:center;justify-content:center;width:100%}
+  .psub{font-size:9px;color:var(--muted);flex-shrink:0;height:14px;display:flex;align-items:flex-start;justify-content:center;margin-top:1px;width:100%;text-align:center}
+  .pval{font-size:16px;font-weight:700;color:var(--black);line-height:1}
+  .pval.g{color:#2E7D32}
+  .pcell input[type=number]{font-size:16px;font-weight:700;color:var(--black);font-family:var(--font);border:none;background:transparent;outline:none;text-align:center;width:100%;padding:0}
+  .pcell input[type=number]:focus{color:var(--zest)}
+  .yr-btn{font-family:var(--font);font-size:12px;font-weight:700;padding:5px 14px;border-radius:6px;border:1.5px solid var(--border);background:var(--white);color:var(--muted);cursor:pointer;transition:all .12s}
+  .yr-btn:hover{border-color:var(--black);color:var(--black)}
+  .yr-btn.active{background:var(--black);border-color:var(--black);color:var(--white)}
+  .tbl-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  thead th{background:#EEECE7;padding:8px 14px;text-align:center;font-weight:600;color:var(--black);border-bottom:1px solid var(--border);white-space:nowrap;font-size:11px;vertical-align:middle}
+  #roi-table thead th{background:var(--black);color:var(--white);border-bottom:none}
+  tbody td{padding:8px 14px;text-align:center;border-bottom:1px solid #F0EEE8;color:#111}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover td{background:#FAFAF7!important}
+  tfoot td{padding:9px 14px;text-align:center;background:#EEECE7;font-weight:700;font-size:12px;border-top:2px solid var(--black)}
+  .cv{background:var(--violet)!important}
+  .cg{background:var(--golden)!important;color:#4A3000;font-weight:700}
+  .cw{background:var(--wreath)!important}
+  .cz{background:var(--zest)!important;color:#fff;font-weight:700}
+  .cb{background:#DBEAFE!important}
+  .cgr{background:#DCFCE7!important;font-weight:600;color:#166534}
+  .cd{background:#1B3A2F!important;color:#fff}
+  .legend{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;padding:10px 16px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .ldot{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+  .key-legend{display:flex;gap:20px;justify-content:center;font-size:11px;color:var(--muted);margin-top:4px;margin-bottom:24px}
+  .key-legend span{display:flex;align-items:center;gap:6px}
+  .kdot{width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.1)}
+  .sched-input{width:80px;font-size:13px;font-weight:600;border:1px solid #E0C840;border-radius:5px;padding:4px 6px;background:#FFFDE8;text-align:center;font-family:var(--font);outline:none}
+  .sched-input:focus{border-color:var(--zest)}
+  .be-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px}
+  .be-cell{background:#EEECE7;border:1px solid var(--border);border-radius:8px;padding:14px 12px;text-align:center}
+  .be-cell.acc{background:#FFF3E0;border-color:var(--zest)}
+  .be-lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;line-height:1.3}
+  .be-val{font-size:22px;font-weight:700;color:var(--black)}
+  .be-sub{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.3}
+
+  /* ── Print / PDF styles ────────────────────────────────────────────────── */
+  @media print {
+    @page { size: A4 landscape; margin: 10mm 12mm; }
+    html, body { background: #fff !important; font-size: 11px; }
+    header { -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 10px 20px; }
+    header svg { height: 20px; }
+    .no-print { display: none !important; }
+    .page { max-width: 100%; padding: 12px 0 0; }
+    .page-title { margin-bottom: 14px; }
+    .page-title h1 { font-size: 16px; }
+    .card { break-inside: avoid; margin-bottom: 12px; border-radius: 6px; }
+    .card-hd, .card-hd.grn { -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 6px 12px; font-size: 9px; }
+    .pgrid { gap: 5px; padding: 7px 10px; }
+    .pcell { padding: 5px 7px 4px; border-radius: 5px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .pcell.var, .pcell.calc, .pcell.out { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .plabel { height: 20px; font-size: 8px; }
+    .pval-wrap { height: 26px; }
+    .pval { font-size: 13px; }
+    .psub { font-size: 7px; height: 11px; }
+    thead th { -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 5px 8px; font-size: 9px; }
+    #roi-table thead th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    tbody td { padding: 5px 8px; font-size: 10px; }
+    tfoot td { padding: 5px 8px; font-size: 10px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .cg, .cw, .cz, .cb, .cgr, .cd, .cv { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .be-grid { gap: 8px; padding: 10px; }
+    .be-cell { padding: 9px 8px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .be-cell.acc { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .be-val { font-size: 16px; }
+    .be-lbl { font-size: 8px; }
+    .be-sub { font-size: 8px; }
+    .sched-input { border: 1px solid #ccc !important; background: #FFFDE8 !important; font-size: 11px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .key-legend { margin-bottom: 10px; }
+    .slabel { margin-bottom: 5px; }
+    .tbl-wrap { overflow: visible; }
+    .legend { padding: 6px 12px; font-size: 9px; }
+    input[type=number], input[type=text] { color: #000 !important; }
+    /* Print firm name prominently */
+    #print-firm-banner { display: block !important; }
+  }
+  #print-firm-banner { display: none; }
+</style>
+</head>
+<body>
+
+<!-- Print-only firm name banner -->
+<div id="print-firm-banner" style="display:none;background:#000;color:#fff;padding:8px 20px;align-items:center;justify-content:space-between;-webkit-print-color-adjust:exact;print-color-adjust:exact">
+  <svg viewBox="0 0 3000 886.84" xmlns="http://www.w3.org/2000/svg" style="height:18px;width:auto"><path fill="#FFF" d="M2848.26,869.75h145.68V7.14h-145.68V869.75z M7.5,869.75h145.68V7.14H7.5V869.75z M479.15,881.62c91.87,0,188.99-48.8,220.49-171.47c0.77-3,5.25-2.64,5.25,0v159.6h140.43V429.19c0-137.18-84-207.09-220.49-207.09c-171.93,0-288.74,73.87-314.99,149.05c-10.5,34.3-7.87,83.1,39.37,100.25c52.5,17.15,103.68-30.34,124.68-87.06c14.44-38.25,61.68-94.97,122.06-94.97c84,0,108.93,48.8,108.93,110.8c0,39.57-21,52.76-68.25,64.63l-115.49,29.02c-149.62,38.25-230.99,100.25-230.99,212.37C290.15,818.31,370.21,881.62,479.15,881.62z M433.21,678.49c0-60.67,34.12-101.56,106.31-121.35c136.49-38.25,154.86-47.49,165.36-72.55v129.27c0,92.33-62.99,170.16-161.43,170.16C483.08,784.02,433.21,755,433.21,678.49z M1189.17,881.62c103.68,0,170.62-51.44,198.18-151.69c0-2.64,3.94-2.64,3.94,0v139.82h144.37V237.93h-183.74c-6.56,0-6.56,6.6-2.63,9.23c27.56,21.1,42,64.63,42,123.99v262.49c0,102.89-52.5,137.18-139.12,137.18c-86.62,0-135.18-38.25-135.18-137.18V237.93H934.56c-6.56,0-7.88,6.6-3.94,9.23c27.56,21.1,42,64.63,42,123.99v262.49C972.62,799.84,1057.93,881.62,1189.17,881.62z M1689.22,869.75h141.74v-360.1c0-93.65,57.75-151.69,104.99-162.24c73.5-15.83,72.19,43.53,144.37,43.53c47.25,0,85.31-58.04,48.56-114.76c-24.94-38.25-87.93-58.04-144.37-48.8c-86.62,15.83-128.62,76.5-149.62,171.47c-0.65,2.92-3.94,2.88-3.94,0V237.93h-181.11c-6.56,0-6.56,6.6-3.94,9.23c27.56,21.1,43.31,64.63,43.31,123.99V869.75z M2462.24,881.62c127.3,0,250.68-69.91,278.24-244.02c0-5.28-5.25-6.59-7.88-2.64c-48.56,87.06-132.56,125.31-219.18,125.31c-116.8,0-216.55-72.55-216.55-242.7v-17.15h434.42l-2.63-40.89c-9.19-135.86-102.37-237.43-257.24-237.43c-179.81,0-313.68,142.46-313.68,335.04C2156.44,744.44,2285.06,881.62,2462.24,881.62z M2304.75,439.75c19.69-92.33,77.43-153.01,164.05-150.37c86.62-2.64,127.31,56.72,127.31,150.37H2304.75z"/></svg>
+  <div style="text-align:center">
+    <div style="font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:2px">Return on Investment Model — Time &amp; Materials</div>
+    <div id="print-firm-name" style="font-size:14px;font-weight:700;color:#fff"></div>
+  </div>
+  <div style="font-size:9px;color:rgba(255,255,255,0.5)" id="print-date"></div>
+</div>
+
+<header class="no-print">
+  <svg viewBox="0 0 3000 886.84" xmlns="http://www.w3.org/2000/svg">
+    <path fill="#FFF" d="M2848.26,869.75h145.68V7.14h-145.68V869.75z M7.5,869.75h145.68V7.14H7.5V869.75z M479.15,881.62c91.87,0,188.99-48.8,220.49-171.47c0.77-3,5.25-2.64,5.25,0v159.6h140.43V429.19c0-137.18-84-207.09-220.49-207.09c-171.93,0-288.74,73.87-314.99,149.05c-10.5,34.3-7.87,83.1,39.37,100.25c52.5,17.15,103.68-30.34,124.68-87.06c14.44-38.25,61.68-94.97,122.06-94.97c84,0,108.93,48.8,108.93,110.8c0,39.57-21,52.76-68.25,64.63l-115.49,29.02c-149.62,38.25-230.99,100.25-230.99,212.37C290.15,818.31,370.21,881.62,479.15,881.62z M433.21,678.49c0-60.67,34.12-101.56,106.31-121.35c136.49-38.25,154.86-47.49,165.36-72.55v129.27c0,92.33-62.99,170.16-161.43,170.16C483.08,784.02,433.21,755,433.21,678.49z M1189.17,881.62c103.68,0,170.62-51.44,198.18-151.69c0-2.64,3.94-2.64,3.94,0v139.82h144.37V237.93h-183.74c-6.56,0-6.56,6.6-2.63,9.23c27.56,21.1,42,64.63,42,123.99v262.49c0,102.89-52.5,137.18-139.12,137.18c-86.62,0-135.18-38.25-135.18-137.18V237.93H934.56c-6.56,0-7.88,6.6-3.94,9.23c27.56,21.1,42,64.63,42,123.99v262.49C972.62,799.84,1057.93,881.62,1189.17,881.62z M1689.22,869.75h141.74v-360.1c0-93.65,57.75-151.69,104.99-162.24c73.5-15.83,72.19,43.53,144.37,43.53c47.25,0,85.31-58.04,48.56-114.76c-24.94-38.25-87.93-58.04-144.37-48.8c-86.62,15.83-128.62,76.5-149.62,171.47c-0.65,2.92-3.94,2.88-3.94,0V237.93h-181.11c-6.56,0-6.56,6.6-3.94,9.23c27.56,21.1,43.31,64.63,43.31,123.99V869.75z M2462.24,881.62c127.3,0,250.68-69.91,278.24-244.02c0-5.28-5.25-6.59-7.88-2.64c-48.56,87.06-132.56,125.31-219.18,125.31c-116.8,0-216.55-72.55-216.55-242.7v-17.15h434.42l-2.63-40.89c-9.19-135.86-102.37-237.43-257.24-237.43c-179.81,0-313.68,142.46-313.68,335.04C2156.44,744.44,2285.06,881.62,2462.24,881.62z M2304.75,439.75c19.69-92.33,77.43-153.01,164.05-150.37c86.62-2.64,127.31,56.72,127.31,150.37H2304.75z"/>
+  </svg>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div style="display:flex;align-items:center;gap:6px">
+      <span style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:1.2px;margin-right:2px">Currency</span>
+      <button class="cur-btn active" onclick="setCurrency('USD')" id="cur-usd">$ USD</button>
+      <button class="cur-btn" onclick="setCurrency('GBP')" id="cur-gbp">£ GBP</button>
+      <button class="cur-btn" onclick="setCurrency('EUR')" id="cur-eur">€ EUR</button>
+    </div>
+    <div style="width:1px;height:20px;background:rgba(255,255,255,0.2)"></div>
+    <button id="share-btn" onclick="copyShareLink()" class="no-print" style="font-family:var(--font);font-size:11px;font-weight:700;padding:5px 14px;border-radius:5px;border:1.5px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.1);color:#fff;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .12s">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.5 1H15V5.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 1L7 9" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M7 3H3C1.9 3 1 3.9 1 5V13C1 14.1 1.9 15 3 15H11C12.1 15 13 14.1 13 13V9" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Copy share link
+    </button>
+    <button onclick="printToPDF()" class="no-print" style="font-family:var(--font);font-size:11px;font-weight:700;padding:5px 14px;border-radius:5px;border:1.5px solid rgba(248,106,12,0.6);background:rgba(248,106,12,0.15);color:#F86A0C;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .12s">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="5" width="12" height="8" rx="1.5" stroke="#F86A0C" stroke-width="1.5"/><path d="M5 5V3C5 2.4 5.4 2 6 2H10C10.6 2 11 2.4 11 3V5" stroke="#F86A0C" stroke-width="1.5"/><path d="M5 11H11" stroke="#F86A0C" stroke-width="1.5" stroke-linecap="round"/><path d="M5 9H9" stroke="#F86A0C" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Print to PDF
+    </button>
+    <div id="share-toast" style="font-size:11px;color:#86efac;font-weight:600;opacity:0;transition:opacity .3s">Copied!</div>
+  </div>
+</header>
+
+<div class="page">
+
+  <div class="page-title">
+    <h1>Return on Investment Model — Time &amp; Materials</h1>
+    <div style="margin-top:10px;display:flex;align-items:center;justify-content:center;gap:10px">
+      <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Firm Name</label>
+      <input type="text" id="firm_name" placeholder="Enter firm name…" oninput="updateURL()"
+        style="font-size:14px;font-weight:600;font-family:var(--font);border:none;border-bottom:2px solid var(--border);background:transparent;padding:3px 8px;outline:none;width:260px;text-align:center;color:var(--black)">
+    </div>
+    <p style="margin-top:6px">All outputs update automatically as you adjust inputs · values are saved in the URL</p>
+  </div>
+
+  <!-- ═══ SECTION 1: CORE PARAMETERS ═══ -->
+  <div class="slabel">Core Parameters</div>
+  <div class="card">
+    <div class="card-hd">Billing &amp; Workforce Inputs</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px 0">
+      <span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin-right:4px">Deal Length</span>
+      <button class="yr-btn active" onclick="setYears(1)">1Y</button>
+      <button class="yr-btn" onclick="setYears(2)">2Y</button>
+      <button class="yr-btn" onclick="setYears(3)">3Y</button>
+      <button class="yr-btn" onclick="setYears(4)">4Y</button>
+      <button class="yr-btn" onclick="setYears(5)">5Y</button>
+    </div>
+
+    <!-- INPUT ROW 1: People, time & uplift — linked hrs/mins -->
+    <div class="pgrid" style="grid-template-columns:repeat(5,1fr)">
+      <div class="pcell var">
+        <div class="plabel">Timekeepers</div>
+        <div class="pval-wrap"><input type="number" id="p_tm_emp" value="1300" min="1" step="1"></div>
+        <div class="psub"></div>
+      </div>
+      <div class="pcell var">
+        <div class="plabel">Days / Year</div>
+        <div class="pval-wrap"><input type="number" id="p_days_year" value="250" min="1" step="1"></div>
+        <div class="psub"></div>
+      </div>
+      <div class="pcell var">
+        <div class="plabel">Firm Revenue</div>
+        <div class="pval-wrap">
+          <div style="display:flex;align-items:baseline;justify-content:center;gap:0px">
+            <span class="pval" id="sym-firmrev">$</span>
+            <input type="text" id="p_firm_rev_display" value="50,000,000" style="width:110px;font-size:15px;font-weight:700;color:var(--black);font-family:var(--font);border:none;background:transparent;outline:none;text-align:center">
+            <input type="hidden" id="p_firm_rev" value="50000000">
+          </div>
+        </div>
+        <div class="psub"></div>
+      </div>
+      <div class="pcell var">
+        <div class="plabel">Uplift: Billable Hrs / Person / Day</div>
+        <div class="pval-wrap"><input type="number" id="p_uplift_hrs" value="0.20" min="0.01" step="0.01" style="width:60px" oninput="syncMinsFromHrs()"></div>
+        <div class="psub"></div>
+      </div>
+      <div class="pcell var">
+        <div class="plabel">Uplift: Billable Mins / Person / Day</div>
+        <div class="pval-wrap"><input type="number" id="p_uplift_mins" value="12" min="1" step="1" style="width:60px" oninput="syncHrsFromMins()"></div>
+        <div class="psub"></div>
+      </div>
+    </div>
+
+    <div class="pdiv"></div>
+
+    <!-- INPUT ROW 2: Billing & utilization -->
+    <div class="pgrid" style="grid-template-columns:repeat(6,1fr)">
+      <div class="pcell var">
+        <div class="plabel">Blended Billing Rate</div>
+        <div class="pval-wrap">
+          <div style="display:flex;align-items:baseline;justify-content:center;gap:0px">
+            <span class="pval" id="sym-billing">$</span>
+            <input type="number" id="p_billing_rate" value="400" min="1" step="1" style="width:68px">
+          </div>
+        </div>
+        <div class="psub"></div>
+      </div>
+      <div class="pcell var">
+        <div class="plabel">Billing Realization</div>
+        <div class="pval-wrap">
+          <div style="display:flex;align-items:baseline;justify-content:center;gap:0px">
+            <input type="number" id="p_bill_real" value="80" min="0" max="100" step="1" style="width:40px">
+            <span class="pval">%</span>
+          </div>
+        </div>
+        <div class="psub"></div>
+      </div>
+      <div class="pcell var">
+        <div class="plabel">Collection Realization</div>
+        <div class="pval-wrap">
+          <div style="display:flex;align-items:baseline;justify-content:center;gap:0px">
+            <input type="number" id="p_coll_real" value="98" min="0" max="100" step="1" style="width:40px">
+            <span class="pval">%</span>
+          </div>
+        </div>
+        <div class="psub"></div>
+      </div>
+      <div class="pcell var">
+        <div class="plabel">Fixed Fee Work %</div>
+        <div class="pval-wrap">
+          <div style="display:flex;align-items:baseline;justify-content:center;gap:0px">
+            <input type="number" id="p_tm_adj" value="0" min="0" max="100" step="1" style="width:40px">
+            <span class="pval">%</span>
+          </div>
+        </div>
+        <div class="psub">% of work billed fixed fee</div>
+      </div>
+      <div class="pcell var">
+        <div class="plabel">Timekeeper Utilization</div>
+        <div class="pval-wrap">
+          <div style="display:flex;align-items:baseline;justify-content:center;gap:0px">
+            <input type="number" id="p_util_base" value="85" min="0" max="100" step="1" style="width:40px">
+            <span class="pval">%</span>
+          </div>
+        </div>
+        <div class="psub">Current baseline</div>
+      </div>
+      <div class="pcell var">
+        <div class="plabel">Utilization Increase</div>
+        <div class="pval-wrap">
+          <div style="display:flex;align-items:baseline;justify-content:center;gap:0px">
+            <input type="number" id="p_util_inc" value="5" min="0" max="100" step="1" style="width:40px">
+            <span class="pval">%</span>
+          </div>
+        </div>
+        <div class="psub">Drives revenue &amp; ROI up</div>
+      </div>
+    </div>
+
+    <div class="pdiv"></div>
+
+    <!-- CALCULATED ROW: all outputs -->
+    <div class="pgrid" style="grid-template-columns:repeat(5,1fr)">
+      <div class="pcell calc">
+        <div class="plabel">Total Realization</div>
+        <div class="pval-wrap"><div class="pval" id="calc_total_real">—</div></div>
+        <div class="psub">= Billing × Collection</div>
+      </div>
+      <div class="pcell calc">
+        <div class="plabel">New Utilization</div>
+        <div class="pval-wrap"><div class="pval" id="calc_new_util">—</div></div>
+        <div class="psub">= Base + Increase</div>
+      </div>
+      <div class="pcell calc">
+        <div class="plabel">Daily Uplift / Timekeeper</div>
+        <div class="pval-wrap"><div class="pval" id="calc_daily_uplift">—</div></div>
+        <div class="psub"></div>
+      </div>
+      <div class="pcell calc">
+        <div class="plabel">Monthly Uplift / Timekeeper</div>
+        <div class="pval-wrap"><div class="pval" id="calc_monthly_uplift">—</div></div>
+        <div class="psub"></div>
+      </div>
+      <div class="pcell calc">
+        <div class="plabel">Annual Uplift / Timekeeper</div>
+        <div class="pval-wrap"><div class="pval" id="calc_annual_uplift">—</div></div>
+        <div class="psub"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 2: PRODUCTIVITY METRICS ═══ -->
+  <div class="slabel">Productivity Metrics</div>
+  <div class="card">
+    <div class="card-hd">Velocity &amp; Entries</div>
+
+    <!-- Velocity + Entries row -->
+    <div class="pgrid c7">
+      <div class="pcell var">
+        <div class="plabel">Velocity (days)</div>
+        <div class="pval-wrap"><input type="number" id="p_velocity" value="30" min="1" step="1"></div>
+        <div class="psub">Current days to bill</div>
+      </div>
+      <div class="pcell var">
+        <div class="plabel">Velocity Improvement</div>
+        <div class="pval-wrap">
+          <div style="display:flex;align-items:baseline;justify-content:center;gap:0px">
+            <input type="number" id="p_velocity_pct" value="20" min="0" max="100" step="1" style="width:40px">
+            <span class="pval">%</span>
+          </div>
+        </div>
+        <div class="psub">% reduction in days</div>
+      </div>
+      <div class="pcell out">
+        <div class="plabel">New Velocity (days)</div>
+        <div class="pval-wrap"><div class="pval g" id="calc_new_velocity">—</div></div>
+        <div class="psub"></div>
+      </div>
+      <div class="pcell out">
+        <div class="plabel">Days Saved</div>
+        <div class="pval-wrap"><div class="pval g" id="calc_days_saved">—</div></div>
+        <div class="psub">per billing cycle</div>
+      </div>
+      <div class="pcell var">
+        <div class="plabel">Entries / Timekeeper / Day</div>
+        <div class="pval-wrap"><input type="number" id="p_entries" value="8" min="0.1" step="0.1" style="width:60px"></div>
+        <div class="psub">Current baseline</div>
+      </div>
+      <div class="pcell var">
+        <div class="plabel">Entries Increase</div>
+        <div class="pval-wrap">
+          <div style="display:flex;align-items:baseline;justify-content:center;gap:0px">
+            <input type="number" id="p_entries_pct" value="15" min="0" step="1" style="width:40px">
+            <span class="pval">%</span>
+          </div>
+        </div>
+        <div class="psub"></div>
+      </div>
+      <div class="pcell out">
+        <div class="plabel">Entries / TK / Day with Laurel</div>
+        <div class="pval-wrap"><div class="pval g" id="calc_new_entries">—</div></div>
+        <div class="psub"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ SECTION 3: USER SCHEDULE ═══ -->
+  <div class="slabel">User Schedule</div>
+  <div class="card">
+    <div style="background:#FEFCE8;border:1px solid #E0C840;border-radius:8px;margin:14px 16px;padding:12px 16px">
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px;text-align:center">User Caps &amp; Price Per User Per Month</div>
+      <div class="tbl-wrap">
+        <table style="min-width:unset;width:100%;font-size:12px">
+          <tbody id="schedule-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="key-legend">
+    <span><span class="kdot" style="background:#FEFCE8;border-color:#E0C840"></span>Variable — edit these</span>
+    <span><span class="kdot" style="background:#EEECE7"></span>Formula — calculated</span>
+    <span><span class="kdot" style="background:#E8F5E9;border-color:#81C784"></span>New with Laurel</span>
+  </div>
+
+  <!-- ═══ SECTION 4: ROI SUMMARY ═══ -->
+  <div class="slabel">ROI Summary</div>
+  <div class="card">
+    <div class="tbl-wrap">
+      <table id="roi-table">
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>T&amp;M Users</th>
+            <th>Annual Platform Fee</th>
+            <th>PPUPM</th>
+            <th>Monthly ROI</th>
+            <th>Annual ROI</th>
+            <th>Business Days Payback</th>
+            <th>ROI Multiple</th>
+          </tr>
+        </thead>
+        <tbody id="roi-body"></tbody>
+        <tfoot id="roi-foot"></tfoot>
+      </table>
+    </div>
+    <div class="legend">
+      <span><span class="ldot" style="background:var(--wreath)"></span>Monthly ROI</span>
+      <span><span class="ldot" style="background:var(--golden)"></span>Annual ROI</span>
+      <span><span class="ldot" style="background:#DBEAFE"></span>Payback days</span>
+      <span><span class="ldot" style="background:var(--zest)"></span>ROI Multiple</span>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 5: REVENUE IMPACT ═══ -->
+  <div class="slabel">Revenue Impact</div>
+  <div class="card">
+    <div class="card-hd grn">Firm Revenue Analysis</div>
+    <div class="pgrid c6">
+      <div class="pcell calc">
+        <div class="plabel">Annual Firm Revenue</div>
+        <div class="pval-wrap"><div class="pval" id="rev_current">—</div></div>
+        <div class="psub"></div>
+      </div>
+      <div class="pcell calc">
+        <div class="plabel">Revenue / Timekeeper (Current)</div>
+        <div class="pval-wrap"><div class="pval" id="rev_per_tk_before">—</div></div>
+        <div class="psub">Firm revenue ÷ timekeepers</div>
+      </div>
+      <div class="pcell out">
+        <div class="plabel">Revenue / Timekeeper with Laurel</div>
+        <div class="pval-wrap"><div class="pval g" id="rev_per_tk_after">—</div></div>
+        <div class="psub">+ Yr 1 net uplift per TK</div>
+      </div>
+      <div class="pcell out">
+        <div class="plabel">New Laurel Revenue (Yr 1)</div>
+        <div class="pval-wrap"><div class="pval g" id="rev_yr1">—</div></div>
+        <div class="psub">After fixed fee work % deduction</div>
+      </div>
+      <div class="pcell out">
+        <div class="plabel">Revenue Increase %</div>
+        <div class="pval-wrap"><div class="pval g" id="rev_pct">—</div></div>
+        <div class="psub">Yr 1 net / firm revenue</div>
+      </div>
+      <div class="pcell out">
+        <div class="plabel">Total New Revenue (All Years)</div>
+        <div class="pval-wrap"><div class="pval g" id="rev_total">—</div></div>
+        <div class="psub">Cumulative net new</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 6: BREAK-EVEN ═══ -->
+  <div class="slabel">Break-Even Analysis</div>
+  <div class="card">
+    <div class="card-hd grn">Break-Even on Contract Cost (Year 1)</div>
+    <div class="be-grid">
+      <div class="be-cell">
+        <div class="be-lbl">Annual Platform Fee (Yr 1)</div>
+        <div class="be-val" id="be_fee">—</div>
+        <div class="be-sub">Contract cost to recover</div>
+      </div>
+      <div class="be-cell">
+        <div class="be-lbl">Net New Revenue / TK / Year</div>
+        <div class="be-val" id="be_daily_tk">—</div>
+        <div class="be-sub">After fixed fee work % deduction</div>
+      </div>
+      <div class="be-cell acc">
+        <div class="be-lbl">Business Days to Break Even</div>
+        <div class="be-val" id="be_days">—</div>
+        <div class="be-sub">Using all current timekeepers</div>
+      </div>
+      <div class="be-cell acc">
+        <div class="be-lbl">New TKs Needed to Break Even in 1 Year</div>
+        <div class="be-val" id="be_new_tks">—</div>
+        <div class="be-sub">Additional timekeepers at current net uplift</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 7: DEAL TERMS ═══ -->
+  <div class="slabel" id="deal-label">Deal Terms — 5 Year</div>
+  <div class="card">
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="cd">#</th>
+            <th class="cd">Term Year</th>
+            <th class="cd">User Cap</th>
+            <th class="cd">Price / User / Month</th>
+            <th class="cd">Annual Platform Fee</th>
+            <th class="cd">Laurel Yearly Revenue</th>
+          </tr>
+        </thead>
+        <tbody id="deal-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const CURR = {USD:{s:'$'},GBP:{s:'£'},EUR:{s:'€'}};
+let currency = 'USD';
+
+// ── Hrs ↔ Mins sync ───────────────────────────────────────────────────────────
+function syncMinsFromHrs() {
+  const hrs = parseFloat(document.getElementById('p_uplift_hrs').value) || 0;
+  document.getElementById('p_uplift_mins').value = Math.round(hrs * 60);
+  calcAll();
+}
+function syncHrsFromMins() {
+  const mins = parseFloat(document.getElementById('p_uplift_mins').value) || 0;
+  const hrs = (mins / 60).toFixed(4);
+  document.getElementById('p_uplift_hrs').value = hrs;
+  calcAll();
+}
+
+// ── Firm Revenue comma-formatted display ─────────────────────────────────────
+function setupFirmRev() {
+  const display = document.getElementById('p_firm_rev_display');
+  const hidden  = document.getElementById('p_firm_rev');
+  display.addEventListener('focus', () => {
+    display.value = hidden.value; // show raw number for editing
+  });
+  display.addEventListener('blur', () => {
+    const raw = parseFloat(display.value.replace(/,/g,'')) || 0;
+    hidden.value = raw;
+    display.value = raw.toLocaleString('en-US');
+    calcAll();
+  });
+  display.addEventListener('input', () => {
+    // Allow typing freely; update hidden on every keystroke for live calc
+    const raw = parseFloat(display.value.replace(/,/g,'')) || 0;
+    hidden.value = raw;
+    calcAll();
+  });
+}
+
+function setCurrency(c) {
+  currency = c;
+  document.querySelectorAll('.cur-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('cur-'+c.toLowerCase()).classList.add('active');
+  document.getElementById('sym-billing').textContent = CURR[c].s;
+  document.getElementById('sym-firmrev').textContent = CURR[c].s;
+  calcAll(); // calcAll already calls scheduleURLUpdate internally
+}
+
+function fmtM(n)  { return CURR[currency].s + Math.round(n).toLocaleString('en-US'); }
+function fmtN(n)  { return Math.round(n).toLocaleString('en-US'); }
+function fmtP(n)  { return n.toFixed(1)+'%'; }
+
+let dealYears = 5;
+const DEFAULTS = [{users:500,ppupm:80},{users:1000,ppupm:75},{users:1500,ppupm:70},{users:2000,ppupm:65},{users:2500,ppupm:60}];
+let schedule = DEFAULTS.slice(0,5).map(r=>({...r}));
+
+function setYears(n) {
+  dealYears = n;
+  schedule  = DEFAULTS.slice(0,n).map(r=>({...r}));
+  document.querySelectorAll('.yr-btn').forEach((b,i)=>b.classList.toggle('active',i+1===n));
+  const L={1:'1 Year',2:'2 Year',3:'3 Year',4:'4 Year',5:'5 Year'};
+  document.getElementById('deal-label').textContent='Deal Terms — '+L[n];
+  buildScheduleTable();
+  calcAll();
+}
+
+function gn(id)   { return +document.getElementById(id).value||0; }
+function gi(id)   { return Math.round(gn(id)); }
+function gpct(id) { return Math.round(gn(id))/100; }
+
+function getParams() {
+  const billingRate   = gi('p_billing_rate');
+  const daysYear      = gi('p_days_year');
+  const tmEmp         = gi('p_tm_emp');
+  const upliftHrs     = gn('p_uplift_hrs')||0.20;
+  const billReal      = gpct('p_bill_real');
+  const collReal      = gpct('p_coll_real');
+  // Fixed Fee Work %: this % of work is fixed fee so generates no new revenue
+  // Revenue multiplier = 1 - fixedFeePct
+  const fixedFeePct   = gpct('p_tm_adj');
+  const tmMult        = 1 - fixedFeePct;   // fraction of work that IS T&M
+  const firmRev       = gn('p_firm_rev');
+  const velocity      = gi('p_velocity');
+  const velocityPct   = gpct('p_velocity_pct');
+  const entries       = gn('p_entries')||8;
+  const entriesPct    = gpct('p_entries_pct');
+  const utilBase      = gpct('p_util_base');
+  const utilInc       = gpct('p_util_inc');
+
+  const totalReal     = billReal * collReal;
+  const utilMult      = 1 + utilInc;
+  const annualUplift  = billingRate * upliftHrs * daysYear * totalReal * utilMult;
+  const monthlyUplift = annualUplift / 12;
+  const dailyUplift   = annualUplift / daysYear;
+
+  return {billingRate,daysYear,tmEmp,upliftHrs,billReal,collReal,totalReal,
+          fixedFeePct,tmMult,firmRev,velocity,velocityPct,entries,entriesPct,
+          utilBase,utilInc,utilMult,annualUplift,monthlyUplift,dailyUplift};
+}
+
+function calcAll() {
+  const p = getParams();
+
+  // Param displays
+  document.getElementById('calc_total_real').textContent     = fmtP(p.totalReal*100);
+  // uplift mins is now a live input, not a display
+  document.getElementById('calc_daily_uplift').textContent   = fmtM(p.dailyUplift);
+  document.getElementById('calc_monthly_uplift').textContent = fmtM(p.monthlyUplift);
+  document.getElementById('calc_annual_uplift').textContent  = fmtM(p.annualUplift);
+  // Annual uplift (all TKs) removed from display
+  const newUtil = Math.min(100,(p.utilBase+p.utilInc)*100);
+  document.getElementById('calc_new_util').textContent       = fmtP(newUtil);
+
+  // Velocity
+  const newVel    = p.velocity*(1-p.velocityPct);
+  const daysSaved = p.velocity - newVel;
+  document.getElementById('calc_new_velocity').textContent = newVel.toFixed(1);
+  document.getElementById('calc_days_saved').textContent   = daysSaved.toFixed(1);
+
+  // Entries
+  const newEntries = p.entries*(1+p.entriesPct);
+  document.getElementById('calc_new_entries').textContent  = newEntries.toFixed(2);
+
+  // ROI rows — fixed fee % reduces ALL revenue numbers
+  const rows = schedule.map((s,i)=>{
+    const annualFee    = s.users * s.ppupm * 12;
+    const monthlyROI   = s.users * p.monthlyUplift * p.tmMult;
+    const annualROI    = monthlyROI * 12;
+    const bdPayback    = annualROI>0 ? Math.round((annualFee/annualROI)*p.daysYear*10)/10 : 0;
+    const roiMult      = annualFee>0 ? annualROI/annualFee : 0;
+    return {year:i+1,users:s.users,ppupm:s.ppupm,annualFee,monthlyROI,annualROI,bdPayback,roiMult};
+  });
+
+  // ROI table
+  document.getElementById('roi-body').innerHTML = rows.map(r=>`
+    <tr>
+      <td>${r.year}</td>
+      <td>${fmtN(r.users)}</td>
+      <td>${fmtM(r.annualFee)}</td>
+      <td>${fmtM(r.ppupm)}</td>
+      <td class="cw">${fmtM(r.monthlyROI)}</td>
+      <td class="cg">${fmtM(r.annualROI)}</td>
+      <td class="cb">${r.bdPayback.toFixed(1)}</td>
+      <td class="cz">${r.roiMult.toFixed(1)}X</td>
+    </tr>`).join('');
+
+  const totAnn = rows.reduce((s,r)=>s+r.annualROI,0);
+  const totFee = rows.reduce((s,r)=>s+r.annualFee,0);
+  const totMx  = totFee>0 ? totAnn/totFee : 0;
+  // Footer: no Monthly ROI sum per user request
+  document.getElementById('roi-foot').innerHTML=`
+    <tr>
+      <td colspan="4">Total</td>
+      <td></td>
+      <td class="cg">${fmtM(totAnn)}</td>
+      <td></td>
+      <td class="cg">${totMx.toFixed(1)}X</td>
+    </tr>`;
+
+  // Deal terms
+  document.getElementById('deal-body').innerHTML = rows.map((r,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td>${r.year}</td>
+      <td class="cg">${fmtN(r.users)}</td>
+      <td>${fmtM(r.ppupm)}</td>
+      <td>${fmtM(r.annualFee)}</td>
+      <td class="cg">${fmtM(r.annualROI)}</td>
+    </tr>`).join('');
+
+  // Revenue impact — all figures already net of fixed fee %
+  const yr1ROI          = rows[0]?.annualROI||0;
+  const incPct          = p.firmRev>0 ? (yr1ROI/p.firmRev)*100 : 0;
+  const yr1Users        = rows[0]?.users||1;
+  const revPerTKBefore  = p.tmEmp>0 ? p.firmRev/p.tmEmp : 0;
+  const revPerTKAfter   = p.tmEmp>0 ? (p.firmRev + yr1ROI)/p.tmEmp : 0;
+
+  document.getElementById('rev_current').textContent       = fmtM(p.firmRev);
+  document.getElementById('rev_per_tk_before').textContent = fmtM(revPerTKBefore);
+  document.getElementById('rev_per_tk_after').textContent  = fmtM(revPerTKAfter);
+  document.getElementById('rev_yr1').textContent           = fmtM(yr1ROI);
+  document.getElementById('rev_pct').textContent           = fmtP(incPct);
+  document.getElementById('rev_total').textContent         = fmtM(totAnn);
+
+  // Break-even — uses net ROI (already net of fixed fee %)
+  const yr1Fee       = rows[0]?.annualFee||0;
+  const annNetPerTK  = p.annualUplift * p.tmMult;            // net annual uplift per TK
+  const dailyNetAll  = yr1Users * p.dailyUplift * p.tmMult;  // net daily across all Yr1 TKs
+  const daysToBreak  = dailyNetAll>0 ? yr1Fee/dailyNetAll : 0;
+  const newTKsNeeded = annNetPerTK>0 ? Math.ceil(yr1Fee/annNetPerTK) : 0;
+
+  document.getElementById('be_fee').textContent      = fmtM(yr1Fee);
+  document.getElementById('be_daily_tk').textContent = fmtM(annNetPerTK);
+  document.getElementById('be_days').textContent     = Math.ceil(daysToBreak).toLocaleString('en-US');
+  document.getElementById('be_new_tks').textContent  = newTKsNeeded.toLocaleString('en-US');
+}
+
+function buildScheduleTable() {
+  const tbody = document.getElementById('schedule-body');
+  const yr  = schedule.map((_,i)=>`<td style="font-weight:600;color:var(--muted);text-align:center">Year ${i+1}</td>`).join('');
+  const uc  = schedule.map((r,i)=>`<td style="text-align:center"><input class="sched-input" type="number" value="${r.users}" min="1" step="100" onchange="schedule[${i}].users=+this.value;buildScheduleTable();calcAll()"></td>`).join('');
+  const pp  = schedule.map((r,i)=>`<td style="text-align:center"><input class="sched-input" type="number" value="${r.ppupm}" min="1" step="1" onchange="schedule[${i}].ppupm=+this.value;calcAll()"></td>`).join('');
+  tbody.innerHTML=`
+    <tr><td style="font-weight:600;color:var(--muted);font-size:11px;text-align:right;padding-right:12px;white-space:nowrap">Year</td>${yr}</tr>
+    <tr><td style="font-weight:600;color:var(--muted);font-size:11px;text-align:right;padding-right:12px;white-space:nowrap">User Cap</td>${uc}</tr>
+    <tr><td style="font-weight:600;color:var(--muted);font-size:11px;text-align:right;padding-right:12px;white-space:nowrap">PPUPM</td>${pp}</tr>`;
+}
+
+// ── URL State: all param IDs to encode/restore ──────────────────────────────
+const URL_PARAMS = [
+  'p_billing_rate','p_days_year','p_tm_emp','p_uplift_hrs','p_uplift_mins',
+  'p_bill_real','p_coll_real','p_tm_adj','p_firm_rev',
+  'p_util_base','p_util_inc',
+  'p_velocity','p_velocity_pct','p_entries','p_entries_pct'
+];
+
+function getState() {
+  const state = { cur: currency, yr: dealYears };
+  URL_PARAMS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) state[id] = el.value;
+  });
+  // Firm revenue raw
+  state['p_firm_rev'] = document.getElementById('p_firm_rev').value;
+  // Schedule
+  state['sched'] = schedule.map(r=>r.users+':'+r.ppupm).join(',');
+  // Firm name
+  state['firm'] = document.getElementById('firm_name').value;
+  return state;
+}
+
+function encodeState() {
+  const s = getState();
+  const params = new URLSearchParams(s);
+  return params.toString();
+}
+
+function updateURL() {
+  // history.replaceState is blocked in sandboxed iframes.
+  // When hosted on a real server this will work automatically.
+  // For now, the share link encodes state as a query string in the copied URL.
+  try {
+    const encoded = encodeState();
+    history.replaceState(null, '', '?' + encoded);
+  } catch(e) {
+    // silently ignore SecurityError in sandboxed contexts
+  }
+}
+
+function loadFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  if (!params.has('yr')) return false; // no saved state
+
+  // Currency
+  const cur = params.get('cur');
+  if (cur && CURR[cur]) { currency = cur; }
+
+  // Firm name
+  const firm = params.get('firm');
+  if (firm) document.getElementById('firm_name').value = firm;
+
+  // All numeric inputs
+  URL_PARAMS.forEach(id => {
+    const val = params.get(id);
+    const el  = document.getElementById(id);
+    if (val !== null && el) el.value = val;
+  });
+
+  // Firm revenue display
+  const firmRevRaw = parseFloat(params.get('p_firm_rev')) || 50000000;
+  document.getElementById('p_firm_rev').value = firmRevRaw;
+  document.getElementById('p_firm_rev_display').value = firmRevRaw.toLocaleString('en-US');
+
+  // Schedule
+  const schedStr = params.get('sched');
+  if (schedStr) {
+    const parsed = schedStr.split(',').map(s => {
+      const [u,p] = s.split(':');
+      return { users: +u, ppupm: +p };
+    });
+    schedule = parsed;
+  }
+
+  // Currency buttons
+  document.querySelectorAll('.cur-btn').forEach(b=>b.classList.remove('active'));
+  const curId = 'cur-'+(cur||'usd').toLowerCase();
+  const curBtn = document.getElementById(curId);
+  if (curBtn) curBtn.classList.add('active');
+  document.getElementById('sym-billing').textContent = CURR[currency].s;
+  document.getElementById('sym-firmrev').textContent = CURR[currency].s;
+
+  // Deal years
+  const yr = parseInt(params.get('yr')) || 5;
+  dealYears = yr;
+  document.querySelectorAll('.yr-btn').forEach((b,i)=>b.classList.toggle('active',i+1===yr));
+  const L={1:'1 Year',2:'2 Year',3:'3 Year',4:'4 Year',5:'5 Year'};
+  document.getElementById('deal-label').textContent='Deal Terms — '+L[yr];
+
+  return true;
+}
+
+function printToPDF() {
+  // Populate print banner with firm name and date before printing
+  const firmName = document.getElementById('firm_name').value.trim();
+  document.getElementById('print-firm-name').textContent = firmName || 'ROI Analysis';
+  document.getElementById('print-date').textContent = new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
+  window.print();
+}
+
+function copyShareLink() {
+  const encoded = encodeState();
+  // Build a shareable URL — works whether hosted or run locally
+  const base = window.location.href.split('?')[0].split('#')[0];
+  const shareURL = base + '?' + encoded;
+
+  const showToast = (msg) => {
+    const toast = document.getElementById('share-toast');
+    toast.textContent = msg;
+    toast.style.opacity = '1';
+    setTimeout(() => toast.style.opacity = '0', 2500);
+  };
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(shareURL).then(() => {
+      showToast('Link copied!');
+    }).catch(() => {
+      fallbackCopy(shareURL, showToast);
+    });
+  } else {
+    fallbackCopy(shareURL, showToast);
+  }
+}
+
+function fallbackCopy(text, showToast) {
+  // Fallback for browsers/contexts where clipboard API is blocked
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showToast('Link copied!');
+  } catch(e) {
+    // Last resort: show the URL in a prompt so user can copy manually
+    window.prompt('Copy this share link:', text);
+  }
+  document.body.removeChild(ta);
+}
+
+// ── URL is encoded on demand when "Copy share link" is clicked ───────────────
+// (history.replaceState is skipped silently if blocked by sandbox)
+
+// ── Wire all inputs to trigger calcAll (and thus URL update) ─────────────────
+document.querySelectorAll('input[type=number], input[type=text]').forEach(el=>{
+  const skipIds = ['p_uplift_hrs','p_uplift_mins','p_firm_rev','p_firm_rev_display'];
+  if(!el.getAttribute('onchange') && !skipIds.includes(el.id)) el.addEventListener('input',calcAll);
+});
+// firm_name updates URL on input
+document.getElementById('firm_name').addEventListener('input', updateURL);
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+setupFirmRev();
+
+const hadSavedState = loadFromURL();
+
+// Sync mins from hrs (either from URL or default)
+document.getElementById('p_uplift_mins').value = Math.round(parseFloat(document.getElementById('p_uplift_hrs').value||0.20) * 60);
+
+if (!hadSavedState) {
+  setYears(5);
+} else {
+  buildScheduleTable();
+  calcAll();
+}
+</script>
+</body>
+</html>
