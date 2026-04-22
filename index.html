@@ -515,13 +515,13 @@ let currency = 'USD';
 function syncMinsFromHrs() {
   const hrs = parseFloat(document.getElementById('p_uplift_hrs').value) || 0;
   document.getElementById('p_uplift_mins').value = Math.round(hrs * 60);
-  calcAll();
+  calcAll(); // calcAll calls updateURL
 }
 function syncHrsFromMins() {
   const mins = parseFloat(document.getElementById('p_uplift_mins').value) || 0;
   const hrs = (mins / 60).toFixed(4);
   document.getElementById('p_uplift_hrs').value = hrs;
-  calcAll();
+  calcAll(); // calcAll calls updateURL
 }
 
 // ── Firm Revenue comma-formatted display ─────────────────────────────────────
@@ -535,13 +535,12 @@ function setupFirmRev() {
     const raw = parseFloat(display.value.replace(/,/g,'')) || 0;
     hidden.value = raw;
     display.value = raw.toLocaleString('en-US');
-    calcAll();
+    calcAll(); // calcAll calls updateURL
   });
   display.addEventListener('input', () => {
-    // Allow typing freely; update hidden on every keystroke for live calc
     const raw = parseFloat(display.value.replace(/,/g,'')) || 0;
     hidden.value = raw;
-    calcAll();
+    calcAll(); // calcAll calls updateURL
   });
 }
 
@@ -569,7 +568,7 @@ function setYears(n) {
   const L={1:'1 Year',2:'2 Year',3:'3 Year',4:'4 Year',5:'5 Year'};
   document.getElementById('deal-label').textContent='Deal Terms — '+L[n];
   buildScheduleTable();
-  calcAll();
+  calcAll(); // calcAll calls updateURL internally
 }
 
 function gn(id)   { return +document.getElementById(id).value||0; }
@@ -701,6 +700,7 @@ function calcAll() {
   document.getElementById('be_daily_tk').textContent = fmtM(annNetPerTK);
   document.getElementById('be_days').textContent     = Math.ceil(daysToBreak).toLocaleString('en-US');
   document.getElementById('be_new_tks').textContent  = newTKsNeeded.toLocaleString('en-US');
+  updateURL();
 }
 
 function buildScheduleTable() {
@@ -743,16 +743,19 @@ function encodeState() {
   return params.toString();
 }
 
+let _urlDebounce = null;
 function updateURL() {
-  // history.replaceState is blocked in sandboxed iframes.
-  // When hosted on a real server this will work automatically.
-  // For now, the share link encodes state as a query string in the copied URL.
-  try {
-    const encoded = encodeState();
-    history.replaceState(null, '', '?' + encoded);
-  } catch(e) {
-    // silently ignore SecurityError in sandboxed contexts
-  }
+  // Debounce so rapid typing doesn't thrash history
+  clearTimeout(_urlDebounce);
+  _urlDebounce = setTimeout(() => {
+    try {
+      const encoded = encodeState();
+      history.replaceState(null, '', '?' + encoded);
+    } catch(e) {
+      // Silently ignore SecurityError in sandboxed iframes (e.g. Claude preview)
+      // Works correctly on GitHub Pages and any real host
+    }
+  }, 400);
 }
 
 function loadFromURL() {
@@ -856,9 +859,6 @@ function fallbackCopy(text, showToast) {
   }
   document.body.removeChild(ta);
 }
-
-// ── URL is encoded on demand when "Copy share link" is clicked ───────────────
-// (history.replaceState is skipped silently if blocked by sandbox)
 
 // ── Wire all inputs to trigger calcAll (and thus URL update) ─────────────────
 document.querySelectorAll('input[type=number], input[type=text]').forEach(el=>{
