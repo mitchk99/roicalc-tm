@@ -207,12 +207,12 @@
       </div>
       <div class="pcell var">
         <div class="plabel">Uplift: Billable Hrs / Person / Day</div>
-        <div class="pval-wrap"><input type="number" id="p_uplift_hrs" value="0.20" min="0.01" step="0.01" style="width:60px" oninput="syncMinsFromHrs()" onblur="this.value=parseFloat(this.value).toFixed(2);syncMinsFromHrs()"></div>
+        <div class="pval-wrap"><input type="number" id="p_uplift_hrs" value="0.20" min="0.01" step="0.01" style="width:60px" oninput="syncMinsFromHrs()" onblur="this.value=(Math.round(parseFloat(this.value)*100)/100).toFixed(2);syncMinsFromHrs()"></div>
         <div class="psub"></div>
       </div>
       <div class="pcell var">
         <div class="plabel">Uplift: Billable Mins / Person / Day</div>
-        <div class="pval-wrap"><input type="number" id="p_uplift_mins" value="12" min="1" step="1" style="width:60px" oninput="syncHrsFromMins()" onblur="this.value=Math.round(parseFloat(this.value)||0);syncHrsFromMins()"></div>
+        <div class="pval-wrap"><input type="number" id="p_uplift_mins" value="12.0" min="0.1" step="0.1" style="width:60px" oninput="syncHrsFromMins()" onblur="this.value=(Math.round(parseFloat(this.value)*10)/10).toFixed(1);syncHrsFromMins()"></div>
         <div class="psub"></div>
       </div>
     </div>
@@ -316,9 +316,9 @@
   </div>
 
   <!-- ═══ SECTION 2: PRODUCTIVITY METRICS ═══ -->
-  <div class="slabel">Productivity Metrics</div>
+  <div class="slabel">Hygiene Metrics</div>
   <div class="card">
-    <div class="card-hd">Velocity &amp; Entries</div>
+    <div class="card-hd">Velocity &amp; Time Entry</div>
 
     <!-- Velocity + Entries row -->
     <div class="pgrid c7">
@@ -374,8 +374,9 @@
   <!-- ═══ SECTION 3: USER SCHEDULE ═══ -->
   <div class="slabel">User Schedule</div>
   <div class="card">
-    <div style="background:#FEFCE8;border:1px solid #E0C840;border-radius:8px;margin:14px 16px;padding:12px 16px">
-      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px;text-align:center">User Caps &amp; Price Per User Per Month</div>
+    <div class="card-hd">User Caps &amp; Price Per User Per Month</div>
+    <div style="background:#FEFCE8;border:1px solid #E0C840;border-radius:0 0 8px 8px;margin:14px 16px;padding:12px 16px">
+      <div style="height:0"></div>
       <div class="tbl-wrap">
         <table style="min-width:unset;width:100%;font-size:12px">
           <tbody id="schedule-body"></tbody>
@@ -514,12 +515,13 @@ let currency = 'USD';
 // ── Hrs ↔ Mins sync ───────────────────────────────────────────────────────────
 function syncMinsFromHrs() {
   const hrs = parseFloat(document.getElementById('p_uplift_hrs').value) || 0;
-  document.getElementById('p_uplift_mins').value = Math.round(hrs * 60);
+  const mins = Math.round(hrs * 60 * 10) / 10;
+  document.getElementById('p_uplift_mins').value = mins.toFixed(1);
   calcAll(); // calcAll calls updateURL
 }
 function syncHrsFromMins() {
   const mins = parseFloat(document.getElementById('p_uplift_mins').value) || 0;
-  const hrs = (mins / 60).toFixed(4);
+  const hrs = (Math.round((mins / 60) * 100) / 100).toFixed(2);
   document.getElementById('p_uplift_hrs').value = hrs;
   calcAll(); // calcAll calls updateURL
 }
@@ -725,7 +727,7 @@ function buildScheduleTable() {
   const pp  = schedule.map((r,i) => {
     const sym = CURR[currency].s;
     return `<td style="text-align:center;white-space:nowrap">
-      <span style="font-weight:700;font-size:13px;color:var(--muted)">${sym}</span><input class="sched-input" type="number" value="${r.ppupm}" min="1" step="1"
+      <span style="font-weight:700;font-size:13px;color:var(--muted);margin-right:3px">${sym}</span><input class="sched-input" type="number" value="${r.ppupm}" min="1" step="1"
         tabindex="${n+i+1}"
         style="width:65px"
         onchange="schedule[${i}].ppupm=+this.value;calcAll()">
@@ -898,7 +900,7 @@ setupFirmRev();
 const hadSavedState = loadFromURL();
 
 // Sync mins from hrs (either from URL or default)
-document.getElementById('p_uplift_mins').value = Math.round(parseFloat(document.getElementById('p_uplift_hrs').value||0.20) * 60);
+document.getElementById('p_uplift_mins').value = (Math.round(parseFloat(document.getElementById('p_uplift_hrs').value||0.20) * 60 * 10) / 10).toFixed(1);
 
 if (!hadSavedState) {
   setYears(5);
