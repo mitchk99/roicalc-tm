@@ -143,6 +143,8 @@
       <button class="cur-btn active" onclick="setCurrency('USD')" id="cur-usd">$ USD</button>
       <button class="cur-btn" onclick="setCurrency('GBP')" id="cur-gbp">£ GBP</button>
       <button class="cur-btn" onclick="setCurrency('EUR')" id="cur-eur">€ EUR</button>
+      <button class="cur-btn" onclick="setCurrency('CAD')" id="cur-cad">$ CAD</button>
+      <button class="cur-btn" onclick="setCurrency('AUD')" id="cur-aud">$ AUD</button>
     </div>
     <div style="width:1px;height:20px;background:rgba(255,255,255,0.2)"></div>
     <button id="share-btn" onclick="copyShareLink()" class="no-print" style="font-family:var(--font);font-size:11px;font-weight:700;padding:5px 14px;border-radius:5px;border:1.5px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.1);color:#fff;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .12s">
@@ -438,7 +440,7 @@
       <div class="pcell out">
         <div class="plabel">Revenue / Timekeeper with Laurel</div>
         <div class="pval-wrap"><div class="pval g" id="rev_per_tk_after">—</div></div>
-        <div class="psub">+ Yr 1 net uplift per TK</div>
+        <div class="psub">Current rev/TK + net annual uplift/TK</div>
       </div>
       <div class="pcell out">
         <div class="plabel">New Laurel Revenue (Yr 1)</div>
@@ -509,7 +511,7 @@
 </div>
 
 <script>
-const CURR = {USD:{s:'$'},GBP:{s:'£'},EUR:{s:'€'}};
+const CURR = {USD:{s:'$'},GBP:{s:'£'},EUR:{s:'€'},CAD:{s:'$'},AUD:{s:'$'}};
 let currency = 'USD';
 
 // ── Hrs ↔ Mins sync ───────────────────────────────────────────────────────────
@@ -556,7 +558,14 @@ function setCurrency(c) {
   calcAll();
 }
 
-function fmtM(n)  { return CURR[currency].s + Math.round(n).toLocaleString('en-US'); }
+function fmtM(n)  {
+  const sym = CURR[currency].s;
+  const num = Math.round(n).toLocaleString('en-US');
+  // Append currency code for CAD/AUD so they're distinguishable from USD
+  if (currency === 'CAD') return sym + num + ' CAD';
+  if (currency === 'AUD') return sym + num + ' AUD';
+  return sym + num;
+}
 function fmtN(n)  { return Math.round(n).toLocaleString('en-US'); }
 function fmtP(n)  { return n.toFixed(1)+'%'; }
 
@@ -683,7 +692,10 @@ function calcAll() {
   const incPct          = p.firmRev>0 ? (yr1ROI/p.firmRev)*100 : 0;
   const yr1Users        = rows[0]?.users||1;
   const revPerTKBefore  = p.tmEmp>0 ? p.firmRev/p.tmEmp : 0;
-  const revPerTKAfter   = p.tmEmp>0 ? (p.firmRev + yr1ROI)/p.tmEmp : 0;
+  // Rev/TK with Laurel = current rev/TK + net annual uplift per TK
+  // (consistent with break-even annNetPerTK, not diluted by non-Laurel TKs)
+  const annNetPerTKRev  = p.annualUplift * p.tmMult;
+  const revPerTKAfter   = revPerTKBefore + annNetPerTKRev;
 
   document.getElementById('rev_current').textContent       = fmtM(p.firmRev);
   document.getElementById('rev_per_tk_before').textContent = fmtM(revPerTKBefore);
